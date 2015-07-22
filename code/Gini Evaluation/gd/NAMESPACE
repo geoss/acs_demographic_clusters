@@ -1,0 +1,3 @@
+exportPattern("^[[:alpha:]]+")
+export(cluster_types,cluster_groups,describe_types,visualise_classification,evaluate_classification,cluster_lookup,input_geodemographic,grand_index_generator,merge_types,prepare_geodemographic,split_types)
+

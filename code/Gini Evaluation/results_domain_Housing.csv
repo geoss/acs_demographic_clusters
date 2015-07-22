@@ -1,0 +1,15 @@
+"","desc","Concept","Domain","Gini_Types"
+"107","PCT Housing Units 50 Or More","Environment","Housing",0.597078570722506
+"108","PCT Housing Units Mobile Home","Environment","Housing",0.51602177204085
+"106","PCT Housing Units 20 To 49","Environment","Housing",0.498312921616161
+"105","PCT Housing Units 10 To 19","Environment","Housing",0.447988561724727
+"102","PCT Housing Units 2","Environment","Housing",0.43995281895218
+"111","PCT Housing Units Built 1939 Or Earlier","Environment","Housing",0.386989903499873
+"103","PCT Housing Units 3 Or 4","Environment","Housing",0.384927392057661
+"104","PCT Housing Units 5 To 9","Environment","Housing",0.380455579504086
+"101","PCT Housing Units 1  Attached","Environment","Housing",0.350283639380331
+"109","PCT Housing Units Built 2005 Or Later","Environment","Housing",0.310603599141769
+"110","PCT Housing Units Built 2000 To 2004","Environment","Housing",0.298254595044627
+"99","PCT Occupied Housing Units Renter Occupied","Environment","Housing",0.280464584160683
+"98","PCT Housing Units Vacant","Environment","Housing",0.239186934143623
+"100","PCT Housing Units 1  Detached","Environment","Housing",0.164261843936738

@@ -1,0 +1,11 @@
+Package: gd
+Type: Package
+Title: A package to build, visualise and test geodemographic classifications
+Version: 1.0
+Date: 2012-17-10
+Author: Alex D Singleton, Liam Bratley
+Maintainer: Alex D Singleton <alex.singleton@liverpool.ac.uk> Liam Bratley <l.bratley@liverpool.ac.uk>
+URL: http://rpubs.com/alexsingleton/gd
+Depends: R (>= 2.12.0), car, graphics, gplots, ggplot2, RColorBrewer, scales, grid
+Description: This package contains various functions that allow a user to build a geodemographic classification; enabling the preparation of input measures, creation of Type and Group levels, visualisation of the input data and output classification, and finally, evaluation of classification performance.
+License: GPL (>= 2)
