@@ -208,7 +208,8 @@ dev.off()
 ```
 
 ##Prepare final data frame
-THe final data frame contains the results of the k-means and Wards.  #STOPPED HERE
+The final data frame contains the results of the k-means and Wards, also create a shapefile with results.  The shapefile with results is posted on OpenICPSR. 
+```{r}
 ward.cuts <- data.frame(class=1:250, cutree(wards.ctr,k=c(2,10,31,55)))
 usa.trt.cl <- merge(x=usa.trt.cl, y=ward.cuts[, c("X2", "class")], by.x="cluster", by.y="class", all.x=TRUE)
 usa.trt.cl <- merge(x=usa.trt.cl, y=ward.cuts[, c("X10", "class")], by.x="cluster", by.y="class", all.x=TRUE)
@@ -217,15 +218,11 @@ usa.trt.cl <- merge(x=usa.trt.cl, y=ward.cuts[, c("X55", "class")], by.x="cluste
 
 rm(ward.cuts) #cleanup
 
-#############################################################
-##CREATE SHAPEFILE WITH RESULTS
-#############################################################
+#load map of census tracts
+usa.trt.map  <- readShapePoly("US_tract_2010.shp") #all tracts in the US
 
-###READ IN SHAPEFILE
 
-usa.trt.map  <- readShapePoly("US_tract_2010.shp")
-
-##FIX GEOIDS FOR MERGING
+##standardize Geo_ID's
 usa.trt.cl[nchar(as.character(usa.trt.cl$"FIPS")) < 11,"GEOID2"] <- 
   paste("0", usa.trt.cl[nchar(as.character(usa.trt.cl$"FIPS")) < 11, "FIPS"], sep="")
 
@@ -246,14 +243,14 @@ usa.trt.map@data <- data.frame(usa.trt.map@data,
 
 
 writePolyShape(x=usa.trt.map, fn="US_tract_clusters.shp")
+```
 
 
-########################################################################
-##VISUAL SUMMARY OF CLUSTER ATTRIBUTES
-########################################################################
+##Visual Summaries of Cluster Attributes.
 
+The code below plots heatmaps and other visual zummaries of the clusters.  Plots are grouped by domain, see `vars` or the article for a summary of the variables by domain.
 
-
+```{r}
 ##############################
 ##CREATE SUBSETS AROUND THEMES
 ##############################
@@ -454,6 +451,6 @@ for (d in levels(variables$Domain)[2:11]){
     theme(legend.position = "none")
   ggsave(p, filename=paste("DomainSummary55class", K, gsub(pattern=" ", replacement="_", x=d), ".pdf" ,sep=""), height=5, width=(dim(get(d))[2]/2))
 }
-
+```
 
 
