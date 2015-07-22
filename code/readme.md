@@ -1,9 +1,3 @@
----
-title: "Studying Neighborhoods Uncertain Data from the American Community Survey"
-author: "Seth Spielman"
-date: "July 21, 2015"
-output: html_document
----
 
 This document outlines the procedeures necessary to reproduce the analysis in 
 [TITLE](URL) by Seth Spielman and Alex Singleton.  All of the data used below
@@ -26,18 +20,6 @@ set.seed(7777) #reproducibality
 
 ## Loading and Preparing Census Data
 The data used in this analysis was downloaded from [Social Explorer](http://www.socialexplorer.com).  Social Explorer provides raw data from the ACS and data that they have processed and reorganized.  The files below are the unprocessed types and we have maintained links to the original ACS table numbers.
-```{r echo=FALSE, message=FALSE}
-usa.trt <- read.table("/Users/Seth/Dropbox/geodemo/Data/R10494789_SL140.csv", header=TRUE, skip=1, sep=",", nrows = 5000)
-classes <- sapply(usa.trt, class)
-classes[grep("Geo_", names(classes))] <- "factor"
-usa.trt <- read.table("/Users/Seth/Dropbox/geodemo/Data/R10494789_SL140.csv", header=TRUE, skip=1, sep=",", colClasses = classes)
-se.col <- grep("*[0-9]s", names(usa.trt)) 
-usa.trt <- usa.trt[,-se.col]
-d.gq <- read.csv("/Users/Seth/Dropbox/geodemo/Data/DENSITY_GQ.csv")
-usa.trt <- merge(x=usa.trt, y=d.gq, by.y="Geo_GEOID", by.x="Geo_GEOID", all.x=TRUE)
-usa.trt <- usa.trt[,-138] #remove geo_id
-rm(d.gq)
-```
 
 
 ```{r eval=FALSE}
@@ -107,7 +89,6 @@ THe block below checks for multicillinearity by regressing each variable on all 
 # An example of dependency would be something like percent owner occupied and percent renter occupied 
 # which together will always 100%
 
-##STOPPED HERE
 d.fit <- numeric()
 for(i in names(usa.trt[,-c(1:4, 10:55, 62:66, 71:81, 89:104, 111:116, 140:144, 121:138)])){
   print(i)
@@ -126,12 +107,10 @@ head(df[order(-df$rsq), ]) #5 highest r-square
 tail(df[order(-df$rsq), ]) #5 lowest r-square
 ```
 
-
-
-##CLUSTER ANALYSIS
+##Cluster Analysis
 This section contains the cluster analysis used to produce the hierarchical classifcation described in the paper.  First we produce 250 clusters via $k$-means then we group these 250 clusters using Ward's Algorithm, an agglomerative hierarchical clustering algorithm.
 
-THe first step is to standardize the data.
+The first step is to standardize the data.
 ```{r eval=FALSE}
 ##STANDARDIZE DATA TO A 0-1 RANGE
 range01 <- function(x){(x-min(x))/(max(x)-min(x))}
@@ -149,18 +128,13 @@ for (i in 1:100000){
 final <- clusters
 ```
 
-```{r echo=FALSE, message=FALSE}
-load("/Users/Seth/Dropbox/geodemo/RData Files/tract_data_with_classes_063013.Rdata")
-load("/Users/Seth/Dropbox/geodemo/RData Files/kmeansResult250_06282013.Rdata")
-```
-
-THen we create a distance matric describing the disimilarity among the 250 clusters.  There are some fun ways to [visualize these matrices](http://stat.ethz.ch/R-manual/R-patched/library/stats/html/heatmap.html).
+Then we create a distance matric describing the disimilarity among the 250 clusters.  There are some fun ways to [visualize these matrices](http://stat.ethz.ch/R-manual/R-patched/library/stats/html/heatmap.html).
 ```{r eval=FALSE}
 #distance matrix for cluster centroids.
 diss.ctr <- dist(final$centers)
 ```
 
-Then we match the incomplete cases to cluster centroids on the basis of fit (i.e. distance).  First we compute the distance between each observation and each cluster centroid, then we assign each case to the minimum distance centroid.  This code block takes awhile to run.
+Match the incomplete cases to cluster centroids on the basis of fit (i.e. distance).  First we compute the distance between each observation and each cluster centroid, then we assign each case to the minimum distance centroid.  This code block takes awhile to run.
 ```{r eval=FALSE}
 ##MATCH INCOMPLETE OBSERVATIONS
 dist.k <- data.frame()
@@ -192,9 +166,8 @@ usa.trt.cl$cluster <- as.factor(usa.trt.cl$cluster)
 rm(usa.trt, usa.trt.cc, usa.trt.ic, se.col, mins, dist.k)
 ```
 
-
-
-##WARDS ON CLUSTER CENTERS
+Ward's method applied to cluster centroids.  Calculate and plot silhouette.
+```{r}
 wards.ctr <-hclust(diss.ctr, method="ward")
 
 #Silhouette
@@ -203,7 +176,10 @@ for (i in 2:250){
   sil[i-1] <-  summary(silhouette(cutree(wards.ctr,k=i), diss.ctr))$avg.width
 }
 sil <- data.frame(sil=sil, k=2:249)
+```
 
+Plot a dendogram with colorad branches
+```{r}
 ggplot(data=sil, aes(x=log(k), y=sil, label=k)) +geom_line() + geom_vline(xintercept=log(c(2,10,31,55)), lty=3, lwd=.5)
 
 ##COLOR BRANCHES OF DENDOGRAM BY CLASS
@@ -229,10 +205,10 @@ legend("topright", fill=clr, col=clr,
        legend=grp_names, bg="white", border=NA, box.lwd=0, cex=.5, xjust = 1, yjust = 1)
 #text(x=.90 , y=seq(.95,.5, -.05), labels=grp_names, col=clr, cex=.5, pos=2)
 dev.off()
+```
 
-####################################
 ##Prepare final data frame
-####################################
+THe final data frame contains the results of the k-means and Wards.  #STOPPED HERE
 ward.cuts <- data.frame(class=1:250, cutree(wards.ctr,k=c(2,10,31,55)))
 usa.trt.cl <- merge(x=usa.trt.cl, y=ward.cuts[, c("X2", "class")], by.x="cluster", by.y="class", all.x=TRUE)
 usa.trt.cl <- merge(x=usa.trt.cl, y=ward.cuts[, c("X10", "class")], by.x="cluster", by.y="class", all.x=TRUE)
