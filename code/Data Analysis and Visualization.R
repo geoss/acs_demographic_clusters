@@ -76,12 +76,18 @@ range01 <- function(x){(x-min(x))/(max(x)-min(x))}
 #aa <- apply(USA2[complete.cases(USA2),6:141], MARGIN=2, FUN=range01)
 ## guess by DN (usa.trt only has 139 variables):
 aa <- apply(usa.trt[complete.cases(usa.trt),5:139], MARGIN=2, FUN=range01)
+
 clusters <- list()
 fit <- NA
-for (i in 1:100000){
-  print(paste("starting run", i, sep=" "))
-  class.250 <- kmeans(x=aa, centers=250, iter.max=1000000, nstart=1)
+numberOfRuns <- 2 # original paper: 100000
+maxClusteringIterations <- 100 # original paper: 1000000
+print(paste("starting clustering with", numberOfRuns, "runs (in the paper: 100000) and max",
+            maxClusteringIterations, "iterations each", sep=" "))
+for (i in 1:numberOfRuns){
+  print(paste("starting run", i, "of", numberOfRuns, sep=" "))
+  class.250 <- kmeans(x=aa, centers=250, iter.max=maxClusteringIterations, nstart=1)
   fit[i] <- class.250$tot.withinss
+  clusters <- class.250 # first clustering could be best
   if (fit[i] < min(fit[1:(i-1)])){
     clusters <- class.250}
 }
