@@ -1,9 +1,11 @@
 # Studying Neighborhoods With Uncertain Census Data
 
 ## Aim
+
 This repository contains all the data and code to create an geodemographic classification of the United States like [ESRI Tapestry](http://www.esri.com/data/esri_data/tapestry) or [Nielsen PRIZM](http://www.claritas.com/MyBestSegments/Default.jsp?ID=70&&pageName=Learn%2BMore&menuOption=learnmore).  However unlike these commercial systems which use proprietary methods and data the inputs and software used to create this classification are all open source.  The methods used to create this repository are outlined in detail in the paper URL.  
 
 ## Data
+
 All of the used to construct the typology including all input and output data is online at [openICPSR](http://doi.org/10.3886/E41329V1).  In the [openICPSR data repository](http://doi.org/10.3886/E41329V1) for this project.  The data repository contains:
 
 * **Input Data** folder contains all of the input Data from the American Community Survey.  A detailed list of the 136 input variables is below.
@@ -11,6 +13,7 @@ All of the used to construct the typology including all input and output data is
 * The **Output Data** folder contains a shapefile for the entire US containing the 10, 55, and 250 class level of the classification (variables names "X10, "X55", and "cluster")
 
 ### Maps
+
 An ESRI Shapefile containing all input data and the output classes for *all* US Census Tracts is available in the **Output Data** folder on the [openICPSR data  repository](http://doi.org/10.3886/E41329V1).
 
 ### Input Variables

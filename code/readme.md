@@ -1,6 +1,7 @@
+# Analysis code for "Studying Neighborhoods Using Uncertain Data from the American Community Survey"
 
 This document outlines the procedeures necessary to reproduce the analysis in 
-[TITLE](URL) by Seth Spielman and Alex Singleton.  All of the data used below
+[Studying Neighborhoods Using Uncertain Data from the American Community Survey: A Contextual Approach](https://doi.org/10.1080/00045608.2015.1052335) by Seth Spielman and Alex Singleton.  All of the data used below
 [downloadable on openICPSR](http://doi.org/10.3886/E41329V2).  We refer readers 
 to the full paper for the motivations behind out various methodological choices.  
 
@@ -17,10 +18,9 @@ library(xtable)
 set.seed(7777) #reproducibality
 ```
 
-
 ## Loading and Preparing Census Data
-The data used in this analysis was downloaded from [Social Explorer](http://www.socialexplorer.com).  Social Explorer provides raw data from the ACS and data that they have processed and reorganized.  The files below are the unprocessed types and we have maintained links to the original ACS table numbers.
 
+The data used in this analysis was downloaded from [Social Explorer](http://www.socialexplorer.com).  Social Explorer provides raw data from the ACS and data that they have processed and reorganized.  The files below are the unprocessed types and we have maintained links to the original ACS table numbers.
 
 ```{r eval=FALSE}
 ##Load ACS Data File (IT IS BIG 2.3GB!!)
@@ -57,7 +57,7 @@ name.vars <- as.character(vars[vars$X %in% in.vars, "desc"])
 names(usa.trt) <- name.vars
 ```
 
-After working with the initial dataset for some tiem we dscided to include the group quarters population and the population density.  The lines below append variables to `usa.trt`.
+After working with the initial dataset for some time we dscided to include the group quarters population and the population density.  The lines below append variables to `usa.trt`.
 
 ```{r eval=FALSE}
 #Avilable on openICPSR http://doi.org/10.3886/E41374V1
@@ -67,8 +67,8 @@ usa.trt <- usa.trt[,-138] #remove geo_id
 rm(d.gq)
 ```
 
-
 ## Splitting the File Into Complete and Incomplete Records
+
 The implementation of $k$-means in R doesn't accept observations with missing data.  We subset the file into complete and incomplete records below
 
 ```{r}
@@ -79,9 +79,9 @@ usa.trt.cc <- usa.trt[complete.cases(usa.trt), ]
 usa.trt.ic <- usa.trt[!complete.cases(usa.trt), ]
 ```
 
+## MultiCollinearity Check
 
-##MultiCollinearity Check
-THe block below checks for multicillinearity by regressing each variable on all of the oterh variables.  We report the results in the article.  
+The block below checks for multicillinearity by regressing each variable on all of the other variables.  We report the results in the article.  
 ```{r}
 # Regress all of the variables against each of the input variables.
 # The resulting r-squared values saved.
@@ -108,9 +108,11 @@ tail(df[order(-df$rsq), ]) #5 lowest r-square
 ```
 
 ##Cluster Analysis
+
 This section contains the cluster analysis used to produce the hierarchical classifcation described in the paper.  First we produce 250 clusters via $k$-means then we group these 250 clusters using Ward's Algorithm, an agglomerative hierarchical clustering algorithm.
 
 The first step is to standardize the data.
+
 ```{r eval=FALSE}
 ##STANDARDIZE DATA TO A 0-1 RANGE
 range01 <- function(x){(x-min(x))/(max(x)-min(x))}
@@ -129,6 +131,7 @@ final <- clusters
 ```
 
 Then we create a distance matric describing the disimilarity among the 250 clusters.  There are some fun ways to [visualize these matrices](http://stat.ethz.ch/R-manual/R-patched/library/stats/html/heatmap.html).
+
 ```{r eval=FALSE}
 #distance matrix for cluster centroids.
 diss.ctr <- dist(final$centers)
@@ -151,10 +154,10 @@ mins <- data.frame(cl=NA)
 for (row in 1:dim(dist.k)[1]){
   mins[row,] <- ifelse(test=is.na(dist.k[row,]), yes=NA, no=which.min(dist.k[row,]))
 }
-
 ```
 
 Next some housekeeping, we put everything together into a final data frame and delete large data.frames that are no longer necessary.
+
 ```{r eval=FALSE}
 ##Build final data frame
 usa.trt.cc$cluster <- final$cluster
@@ -167,6 +170,7 @@ rm(usa.trt, usa.trt.cc, usa.trt.ic, se.col, mins, dist.k)
 ```
 
 Ward's method applied to cluster centroids.  Calculate and plot silhouette.
+
 ```{r}
 wards.ctr <-hclust(diss.ctr, method="ward")
 
@@ -179,6 +183,7 @@ sil <- data.frame(sil=sil, k=2:249)
 ```
 
 Plot a dendogram with colorad branches
+
 ```{r}
 ggplot(data=sil, aes(x=log(k), y=sil, label=k)) +geom_line() + geom_vline(xintercept=log(c(2,10,31,55)), lty=3, lwd=.5)
 
@@ -207,8 +212,10 @@ legend("topright", fill=clr, col=clr,
 dev.off()
 ```
 
-##Prepare final data frame
-The final data frame contains the results of the k-means and Wards, also create a shapefile with results.  The shapefile with results is posted on OpenICPSR. 
+## Prepare final data frame
+
+The final data frame contains the results of the k-means and Wards, also create a shapefile with results.  The shapefile with results is posted on OpenICPSR.
+
 ```{r}
 ward.cuts <- data.frame(class=1:250, cutree(wards.ctr,k=c(2,10,31,55)))
 usa.trt.cl <- merge(x=usa.trt.cl, y=ward.cuts[, c("X2", "class")], by.x="cluster", by.y="class", all.x=TRUE)
@@ -245,8 +252,7 @@ usa.trt.map@data <- data.frame(usa.trt.map@data,
 writePolyShape(x=usa.trt.map, fn="US_tract_clusters.shp")
 ```
 
-
-##Visual Summaries of Cluster Attributes.
+## Visual Summaries of Cluster Attributes
 
 The code below plots heatmaps and other visual zummaries of the clusters.  Plots are grouped by domain, see `vars` or the article for a summary of the variables by domain.
 
@@ -452,5 +458,3 @@ for (d in levels(variables$Domain)[2:11]){
   ggsave(p, filename=paste("DomainSummary55class", K, gsub(pattern=" ", replacement="_", x=d), ".pdf" ,sep=""), height=5, width=(dim(get(d))[2]/2))
 }
 ```
-
-
