@@ -7,10 +7,21 @@
 
 library(cluster)
 library(ggplot2)
+library(here)
+
+##DOWNLOAD REPOSITORY
+#Download link taken from download website after accepting Terms of Use
+if(!file.exists("100235-V5.zip")) {
+  download.file(url = "https://www.openicpsr.org/openicpsr/project/100235/version/V5/download/project?dirPath=/openicpsr/100235/fcr:versions/V5",
+                destfile = "100235-V5.zip")
+}
+if(!dir.exists("Input-Data/")) {
+  unzip(zipfile = "100235-V5.zip")
+}
 
 ##LOAD FULL DATA FILE 
 #Avilable on openICPSR http://doi.org/10.3886/E41333V1
-usa.trt <- read.table("R10494789_SL140.csv", header=TRUE, skip=1, sep=",")
+usa.trt <- read.table(here("Input-Data/R10494789_SL140.csv"), header=TRUE, skip=1, sep=",")
 
 ##REMOVE COLUMNS COLUMNS CONTAINING STANDARD ERRORS
 se.col <- grep("*[0-9]s", names(usa.trt)) 
@@ -21,7 +32,7 @@ usa.trt <- usa.trt[,-se.col]
 ##the column "desc" describes each variable in way that is human readable.
 ##Users of this script can easile expand or retract the the variables in the analysis by editing the "new_set" column
 #Avilable on openICPSR http://doi.org/10.3886/E41383V1
-vars <- read.csv("usa_trt_varnames.csv")
+vars <- read.csv(here("Input-Data/usa_trt_varnames_plots_0913.csv"))
 
 ##SELECTED VARIABLES
 in.vars <- as.character(vars[vars$new_set==0 & is.na(vars$new_set) == FALSE, "var"])
@@ -36,7 +47,7 @@ names(usa.trt) <- name.vars
 ##Add data on population density and group quarters
 ##THese were not in the initial download and were added at a later date
 #Avilable on openICPSR http://doi.org/10.3886/E41374V1
-d.gq <- read.csv("DENSITY_GQ.csv")
+d.gq <- read.csv(here("Input-Data/DENSITY_GQ.csv"))
 usa.trt <- merge(x=usa.trt, y=d.gq, by.y="Geo_GEOID", by.x="Geo_GEOID", all.x=TRUE)
 usa.trt <- usa.trt[,-138] #remove geo_id
 rm(d.gq)
@@ -185,6 +196,8 @@ rm(ward.cuts) #cleanup
 ###READ IN SHAPEFILE
 library(maptools)
 library(rgdal)
+
+# DN: source probably NHGIS.org (needs login), downloaded manually from http://www.ouazad.com/urbanecondata/assignment3_monocentric/Tractdata/
 usa.trt.map  <- readShapePoly("US_tract_2010.shp")
 
 ##FIX GEOIDS FOR MERGING
