@@ -63,35 +63,6 @@ usa.trt.cc <- usa.trt[complete.cases(usa.trt), ]
 #INCOMPELTE CASES
 usa.trt.ic <- usa.trt[!complete.cases(usa.trt), ]
 
-########################################
-##CHECK MULTICOLLINEARITY
-#######################################
-# Check dependencies in each of the input variables.
-# Regress all of the variables against each of the input variables.
-# The resulting r-squared values saved.
-# Variables which have a perfect dependency among them are omitted from the regression. 
-# An example of this would be something like percent owner occupied and percent renter occupied 
-# which together will always 100%
-
-
-d.fit <- numeric()
-for(i in names(usa.trt.cl[,-c(1:4, 10:55, 62:66, 71:81, 89:104, 111:116, 140:144, 121:138)])){
-  print(i)
-  d <-lm(usa.trt.cl[,as.character(i)] ~., 
-         data=usa.trt.cl[,-c(1:4, 10:55, 62:66, 71:81, 89:104, 111:116, 140:144, 121:138,
-                             which(x=names(usa.trt.cl)==i, arr.ind=TRUE))])
-  d.fit <- append(d.fit, summary(d)$adj.r.squared)
-  #break
-}
-d.fit <- as.numeric(d.fit)
-hist(d.fit)
-summary(d.fit)
-
-#save the r-squared of the regressions in a data frame
-df <- data.frame(var=names(usa.trt.cl[,-c(1:4, 10:55, 62:66, 71:81, 89:104, 111:116, 140:144, 121:138)]), rsq=d.fit)
-
-#Sort by rsquared
-df <- df[order(-df$rsq), ]
 
 ########################################
 ##CLUSTER ANALYSIS
@@ -180,6 +151,36 @@ legend("topright", fill=clr, col=clr,
        legend=grp_names, bg="white", border=NA, box.lwd=0, cex=.5, xjust = 1, yjust = 1)
 #text(x=.90 , y=seq(.95,.5, -.05), labels=grp_names, col=clr, cex=.5, pos=2)
 dev.off()
+
+########################################
+##CHECK MULTICOLLINEARITY
+#######################################
+# Check dependencies in each of the input variables.
+# Regress all of the variables against each of the input variables.
+# The resulting r-squared values saved.
+# Variables which have a perfect dependency among them are omitted from the regression. 
+# An example of this would be something like percent owner occupied and percent renter occupied 
+# which together will always 100%
+
+
+d.fit <- numeric()
+for(i in names(usa.trt.cl[,-c(1:4, 10:55, 62:66, 71:81, 89:104, 111:116, 140:144, 121:138)])){
+  print(i)
+  d <-lm(usa.trt.cl[,as.character(i)] ~., 
+         data=usa.trt.cl[,-c(1:4, 10:55, 62:66, 71:81, 89:104, 111:116, 140:144, 121:138,
+                             which(x=names(usa.trt.cl)==i, arr.ind=TRUE))])
+  d.fit <- append(d.fit, summary(d)$adj.r.squared)
+  #break
+}
+d.fit <- as.numeric(d.fit)
+hist(d.fit)
+summary(d.fit)
+
+#save the r-squared of the regressions in a data frame
+df <- data.frame(var=names(usa.trt.cl[,-c(1:4, 10:55, 62:66, 71:81, 89:104, 111:116, 140:144, 121:138)]), rsq=d.fit)
+
+#Sort by rsquared
+df <- df[order(-df$rsq), ]
 
 ####################################
 ##Prepare final data frame
