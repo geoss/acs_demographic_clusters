@@ -100,8 +100,11 @@ set.seed(7777)
 
 ##STANDARDIZE DATA TO A 0-1 RANGE
 range01 <- function(x){(x-min(x))/(max(x)-min(x))}
-aa<- apply(USA2[complete.cases(USA2),6:141], MARGIN=2, FUN=range01)
 
+##original line
+#aa <- apply(USA2[complete.cases(USA2),6:141], MARGIN=2, FUN=range01)
+## guess by DN (usa.trt only has 139 variables):
+aa <- apply(usa.trt[complete.cases(usa.trt),5:139], MARGIN=2, FUN=range01)
 clusters <- list()
 fit <- NA
 for (i in 1:100000){
