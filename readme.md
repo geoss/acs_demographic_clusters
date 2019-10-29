@@ -2,7 +2,7 @@
 
 
 ## Aim
-This repository contains all the data and code to create an geodemographic classification of the United States like [ESRI Tapestry](http://www.esri.com/data/esri_data/tapestry) or [Nielsen PRIZM](http://www.claritas.com/MyBestSegments/Default.jsp?ID=70&&pageName=Learn%2BMore&menuOption=learnmore).  However unlike these commercial systems which use proprietary methods and data the inputs and software used to create this classification are all open source.  The methods used to create this repository are outlined in detail in the paper URL.  
+This repository contains all the data and code to create an geodemographic classification of the United States like [ESRI Tapestry](http://www.esri.com/data/esri_data/tapestry) or [Nielsen PRIZM](http://www.claritas.com/MyBestSegments/Default.jsp?ID=70&&pageName=Learn%2BMore&menuOption=learnmore).  However unlike these commercial systems which use proprietary methods and data the inputs and software used to create this classification are all open source.  The methods used to create this repository are outlined in detail in the paper [here](https://www.tandfonline.com/doi/full/10.1080/00045608.2015.1052335).  
 
 ## Data
 All of the used to construct the typology including all input and output data is online at [openICPSR](http://doi.org/10.3886/E41329V1).  In the [openICPSR data repository](http://doi.org/10.3886/E41329V1) for this project.  The data repository contains:
