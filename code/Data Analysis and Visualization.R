@@ -308,7 +308,7 @@ usa.trt.indexScores <-
 usa.trt.indexScores <- cbind(usa.trt.cl[,c(2:4, 141:144)], usa.trt.indexScores)
 
 #tab_summary <- aggregate(.~ X10, data=usa.trt.indexScores[,c(4,8:143)], FUN=summary)
-tab_mean  <- aggregate(.~ X10, data=usa.trt.indexScores[,c(4,8:143)], FUN=mean)
+tab_mean  <- aggregate(.~ usa.trt.cl$X10, data=usa.trt.indexScores[,c(4,8:143)], FUN=mean)
 
 ##HEATMAPS BY DOMAIN
 for (d in levels(variables$Domain)[2:11]){
