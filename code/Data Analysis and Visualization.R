@@ -284,10 +284,14 @@ for (grp in categories){
     dataM <- melt(
       data.frame(scale(usa.trt.cl[complete.cases(usa.trt.cl),as.character(grp)]), 
                  cat=usa.trt.cl[complete.cases(usa.trt.cl), as.character(cl)]), id="cat")
-    plot1 <- ggplot(dataM, aes(group=variable, x=variable, y=value, fill=variable)) + 
-      stat_summary(fun.y = "mean", geom="bar") + facet_grid(.~ cat, scales="free")  + opts(
-        axis.text.x = theme_text(size=6, angle=45, hjust=1, vjust=1),
-        title="Open Geodemographic \nCommunity Types") + 
+    plot1 <- ggplot(dataM, aes(group=variable, x=variable, y=value, fill=variable)) +
+      stat_summary(fun.y = "mean", geom="bar") + facet_grid(.~ cat, scales="free")  +
+      # https://groups.google.com/forum/#!topic/ggplot2/CaWDdYyBjXw
+      #opts(
+      #  axis.text.x = theme_text(size=6, angle=45, hjust=1, vjust=1),
+      #  title="Open Geodemographic \nCommunity Types") +
+      theme(axis.text.x = element_text(size=6, angle=45, hjust=1, vjust=1)) +
+      labs(title="Open Geodemographic \nCommunity Types") +
       ylab("Variable Mean (Standard Score)") + 
       xlab("Variables by Community Type") 
     print(plot1)
