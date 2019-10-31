@@ -21,7 +21,7 @@ if(!dir.exists("Input-Data/")) {
 
 ##LOAD FULL DATA FILE 
 #Avilable on openICPSR http://doi.org/10.3886/E41333V1
-usa.trt <- read.table(here("Input-Data/R10494789_SL140.csv"), header=TRUE, skip=1, sep=",")
+usa.trt <- read.table(here::here("Input-Data/R10494789_SL140.csv"), header=TRUE, skip=1, sep=",")
 
 ##REMOVE COLUMNS COLUMNS CONTAINING STANDARD ERRORS
 se.col <- grep("*[0-9]s", names(usa.trt)) 
@@ -32,7 +32,7 @@ usa.trt <- usa.trt[,-se.col]
 ##the column "desc" describes each variable in way that is human readable.
 ##Users of this script can easile expand or retract the the variables in the analysis by editing the "new_set" column
 #Avilable on openICPSR http://doi.org/10.3886/E41383V1
-vars <- read.csv(here("Input-Data/usa_trt_varnames_plots_0913.csv"))
+vars <- read.csv(here::here("Input-Data/usa_trt_varnames_plots_0913.csv"))
 
 ##SELECTED VARIABLES
 in.vars <- as.character(vars[vars$new_set==0 & is.na(vars$new_set) == FALSE, "var"])
@@ -47,7 +47,7 @@ names(usa.trt) <- name.vars
 ##Add data on population density and group quarters
 ##THese were not in the initial download and were added at a later date
 #Avilable on openICPSR http://doi.org/10.3886/E41374V1
-d.gq <- read.csv(here("Input-Data/DENSITY_GQ.csv"))
+d.gq <- read.csv(here::here("Input-Data/DENSITY_GQ.csv"))
 usa.trt <- merge(x=usa.trt, y=d.gq, by.y="Geo_GEOID", by.x="Geo_GEOID", all.x=TRUE)
 usa.trt <- usa.trt[,-138] #remove geo_id
 rm(d.gq)
@@ -123,15 +123,17 @@ usa.trt.cl$cluster <- as.factor(usa.trt.cl$cluster)
 rm(usa.trt, usa.trt.cc, usa.trt.ic, se.col, mins, dist.k)
 
 ##WARDS ON CLUSTER CENTERS
-wards.ctr <-hclust(diss.ctr, method="ward")
+wards.ctr <- hclust(diss.ctr, method="ward")
 
 #Silhouette
+library(cluster)
 sil <- NA  #hold fit statistics in a data.frame
-for (i in 2:250){
+for (i in 2:249){ #250){
   sil[i-1] <-  summary(silhouette(cutree(wards.ctr,k=i), diss.ctr))$avg.width
 }
 sil <- data.frame(sil=sil, k=2:249)
 
+library(ggplot2)
 ggplot(data=sil, aes(x=log(k), y=sil, label=k)) +geom_line() + geom_vline(xintercept=log(c(2,10,31,55)), lty=3, lwd=.5)
 
 ##COLOR BRANCHES OF DENDOGRAM BY CLASS
@@ -297,7 +299,7 @@ for (grp in categories){
 #####################################
 ##LOAD DATA
 #load("tract_data_with_classes_063013.Rdata")
-variables <- read.csv("usa_trt_varnames.csv")
+variables <- read.csv(here::here("Input-Data/usa_trt_varnames_plots_0913.csv"))
 
 ##CALCULATE INDEX SCORES
 usa.trt.cl$X10 <- factor(x=usa.trt.cl$X10, levels=1:10, labels=LETTERS[seq( from = 1, to = 10 )])
@@ -337,7 +339,7 @@ rm(Demography, Education, "Family Structure", Housing, "Industry of Occupation",
    Demography.m, Education.m, "Family Structure.m", Housing.m, "Industry of Occupation.m", Language.m, Mobility.m, Race.m, Stability.m, Wealth.m, vars)
 
 #print a html table of means by class
-#print(xtable(tab_mean), type="html", file="~/table.html")
+#print(xtable(tab_mean), type="html", file=here::here("table.html"))
 
 ##############################
 ##POPULATION PYRAMIDS
@@ -442,6 +444,3 @@ for (d in levels(variables$Domain)[2:11]){
     theme(legend.position = "none")
   ggsave(p, filename=paste("DomainSummary55class", K, gsub(pattern=" ", replacement="_", x=d), ".pdf" ,sep=""), height=5, width=(dim(get(d))[2]/2))
 }
-
-
-
