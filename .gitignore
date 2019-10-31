@@ -14,3 +14,7 @@ Output-Data/
 Validation-Data/
 
 Tract-Data/
+
+*.pdf
+
+US_tract_clusters.*
