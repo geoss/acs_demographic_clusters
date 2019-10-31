@@ -209,8 +209,8 @@ rm(ward.cuts) #cleanup
 library(maptools)
 library(rgdal)
 
-# DN: source probably NHGIS.org (needs login), downloaded manually from http://www.ouazad.com/urbanecondata/assignment3_monocentric/Tractdata/
-usa.trt.map  <- readShapePoly(here("tractdata/US_tract_2010.shp"))
+# DN: source probably NHGIS.org (needs login), downloaded manually from http://www.ouazad.com/urbanecondata/assignment3_monocentric/Tractdata/ and saved in Tract-Data
+usa.trt.map  <- readOGR(here::here("Tract-Data/US_tract_2010.shp"))
 
 ##FIX GEOIDS FOR MERGING
 usa.trt.cl[nchar(as.character(usa.trt.cl$"FIPS")) < 11,"GEOID2"] <- 
