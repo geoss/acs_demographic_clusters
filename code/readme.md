@@ -80,7 +80,7 @@ usa.trt.ic <- usa.trt[!complete.cases(usa.trt), ]
 ```
 
 
-##MultiCollinearity Check
+## MultiCollinearity Check
 THe block below checks for multicillinearity by regressing each variable on all of the oterh variables.  We report the results in the article.  
 ```{r}
 # Regress all of the variables against each of the input variables.
@@ -107,7 +107,7 @@ head(df[order(-df$rsq), ]) #5 highest r-square
 tail(df[order(-df$rsq), ]) #5 lowest r-square
 ```
 
-##Cluster Analysis
+## Cluster Analysis
 This section contains the cluster analysis used to produce the hierarchical classifcation described in the paper.  First we produce 250 clusters via $k$-means then we group these 250 clusters using Ward's Algorithm, an agglomerative hierarchical clustering algorithm.
 
 The first step is to standardize the data.
@@ -207,7 +207,7 @@ legend("topright", fill=clr, col=clr,
 dev.off()
 ```
 
-##Prepare final data frame
+## Prepare final data frame
 The final data frame contains the results of the k-means and Wards, also create a shapefile with results.  The shapefile with results is posted on OpenICPSR. 
 ```{r}
 ward.cuts <- data.frame(class=1:250, cutree(wards.ctr,k=c(2,10,31,55)))
@@ -246,7 +246,7 @@ writePolyShape(x=usa.trt.map, fn="US_tract_clusters.shp")
 ```
 
 
-##Visual Summaries of Cluster Attributes.
+## Visual Summaries of Cluster Attributes.
 
 The code below plots heatmaps and other visual zummaries of the clusters.  Plots are grouped by domain, see `vars` or the article for a summary of the variables by domain.
 
