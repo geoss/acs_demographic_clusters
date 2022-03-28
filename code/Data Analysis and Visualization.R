@@ -7,10 +7,21 @@
 
 library(cluster)
 library(ggplot2)
+library(here)
+
+##DOWNLOAD REPOSITORY
+#Download link taken from download website after accepting Terms of Use
+if(!file.exists("100235-V5.zip")) {
+  download.file(url = "https://www.openicpsr.org/openicpsr/project/100235/version/V5/download/project?dirPath=/openicpsr/100235/fcr:versions/V5",
+                destfile = "100235-V5.zip")
+}
+if(!dir.exists("Input-Data/")) {
+  unzip(zipfile = "100235-V5.zip")
+}
 
 ##LOAD FULL DATA FILE 
 #Avilable on openICPSR http://doi.org/10.3886/E41333V1
-usa.trt <- read.table("R10494789_SL140.csv", header=TRUE, skip=1, sep=",")
+usa.trt <- read.table(here::here("Input-Data/R10494789_SL140.csv"), header=TRUE, skip=1, sep=",")
 
 ##REMOVE COLUMNS COLUMNS CONTAINING STANDARD ERRORS
 se.col <- grep("*[0-9]s", names(usa.trt)) 
@@ -21,7 +32,7 @@ usa.trt <- usa.trt[,-se.col]
 ##the column "desc" describes each variable in way that is human readable.
 ##Users of this script can easile expand or retract the the variables in the analysis by editing the "new_set" column
 #Avilable on openICPSR http://doi.org/10.3886/E41383V1
-vars <- read.csv("usa_trt_varnames.csv")
+vars <- read.csv(here::here("Input-Data/usa_trt_varnames_plots_0913.csv"))
 
 ##SELECTED VARIABLES
 in.vars <- as.character(vars[vars$new_set==0 & is.na(vars$new_set) == FALSE, "var"])
@@ -36,7 +47,7 @@ names(usa.trt) <- name.vars
 ##Add data on population density and group quarters
 ##THese were not in the initial download and were added at a later date
 #Avilable on openICPSR http://doi.org/10.3886/E41374V1
-d.gq <- read.csv("DENSITY_GQ.csv")
+d.gq <- read.csv(here::here("Input-Data/DENSITY_GQ.csv"))
 usa.trt <- merge(x=usa.trt, y=d.gq, by.y="Geo_GEOID", by.x="Geo_GEOID", all.x=TRUE)
 usa.trt <- usa.trt[,-138] #remove geo_id
 rm(d.gq)
@@ -52,35 +63,6 @@ usa.trt.cc <- usa.trt[complete.cases(usa.trt), ]
 #INCOMPELTE CASES
 usa.trt.ic <- usa.trt[!complete.cases(usa.trt), ]
 
-########################################
-##CHECK MULTICOLLINEARITY
-#######################################
-# Check dependencies in each of the input variables.
-# Regress all of the variables against each of the input variables.
-# The resulting r-squared values saved.
-# Variables which have a perfect dependency among them are omitted from the regression. 
-# An example of this would be something like percent owner occupied and percent renter occupied 
-# which together will always 100%
-
-
-d.fit <- numeric()
-for(i in names(usa.trt.cl[,-c(1:4, 10:55, 62:66, 71:81, 89:104, 111:116, 140:144, 121:138)])){
-  print(i)
-  d <-lm(usa.trt.cl[,as.character(i)] ~., 
-         data=usa.trt.cl[,-c(1:4, 10:55, 62:66, 71:81, 89:104, 111:116, 140:144, 121:138,
-                             which(x=names(usa.trt.cl)==i, arr.ind=TRUE))])
-  d.fit <- append(d.fit, summary(d)$adj.r.squared)
-  #break
-}
-d.fit <- as.numeric(d.fit)
-hist(d.fit)
-summary(d.fit)
-
-#save the r-squared of the regressions in a data frame
-df <- data.frame(var=names(usa.trt.cl[,-c(1:4, 10:55, 62:66, 71:81, 89:104, 111:116, 140:144, 121:138)]), rsq=d.fit)
-
-#Sort by rsquared
-df <- df[order(-df$rsq), ]
 
 ########################################
 ##CLUSTER ANALYSIS
@@ -89,14 +71,23 @@ set.seed(7777)
 
 ##STANDARDIZE DATA TO A 0-1 RANGE
 range01 <- function(x){(x-min(x))/(max(x)-min(x))}
-aa<- apply(USA2[complete.cases(USA2),6:141], MARGIN=2, FUN=range01)
+
+##original line
+#aa <- apply(USA2[complete.cases(USA2),6:141], MARGIN=2, FUN=range01)
+## guess by DN (usa.trt only has 139 variables):
+aa <- apply(usa.trt[complete.cases(usa.trt),5:139], MARGIN=2, FUN=range01)
 
 clusters <- list()
 fit <- NA
-for (i in 1:100000){
-  print(paste("starting run", i, sep=" "))
-  class.250 <- kmeans(x=aa, centers=250, iter.max=1000000, nstart=1)
+numberOfRuns <- 2 # original paper: 100000
+maxClusteringIterations <- 100 # original paper: 1000000
+print(paste("starting clustering with", numberOfRuns, "runs (in the paper: 100000) and max",
+            maxClusteringIterations, "iterations each", sep=" "))
+for (i in 1:numberOfRuns){
+  print(paste("starting run", i, "of", numberOfRuns, sep=" "))
+  class.250 <- kmeans(x=aa, centers=250, iter.max=maxClusteringIterations, nstart=1)
   fit[i] <- class.250$tot.withinss
+  clusters <- class.250 # first clustering could be best
   if (fit[i] < min(fit[1:(i-1)])){
     clusters <- class.250}
 }
@@ -132,15 +123,17 @@ usa.trt.cl$cluster <- as.factor(usa.trt.cl$cluster)
 rm(usa.trt, usa.trt.cc, usa.trt.ic, se.col, mins, dist.k)
 
 ##WARDS ON CLUSTER CENTERS
-wards.ctr <-hclust(diss.ctr, method="ward")
+wards.ctr <- hclust(diss.ctr, method="ward")
 
 #Silhouette
+library(cluster)
 sil <- NA  #hold fit statistics in a data.frame
-for (i in 2:250){
+for (i in 2:249){ #250){
   sil[i-1] <-  summary(silhouette(cutree(wards.ctr,k=i), diss.ctr))$avg.width
 }
 sil <- data.frame(sil=sil, k=2:249)
 
+library(ggplot2)
 ggplot(data=sil, aes(x=log(k), y=sil, label=k)) +geom_line() + geom_vline(xintercept=log(c(2,10,31,55)), lty=3, lwd=.5)
 
 ##COLOR BRANCHES OF DENDOGRAM BY CLASS
@@ -167,6 +160,36 @@ legend("topright", fill=clr, col=clr,
 #text(x=.90 , y=seq(.95,.5, -.05), labels=grp_names, col=clr, cex=.5, pos=2)
 dev.off()
 
+########################################
+##CHECK MULTICOLLINEARITY
+#######################################
+# Check dependencies in each of the input variables.
+# Regress all of the variables against each of the input variables.
+# The resulting r-squared values saved.
+# Variables which have a perfect dependency among them are omitted from the regression. 
+# An example of this would be something like percent owner occupied and percent renter occupied 
+# which together will always 100%
+
+
+d.fit <- numeric()
+for(i in names(usa.trt.cl[,-c(1:4, 10:55, 62:66, 71:81, 89:104, 111:116, 140:144, 121:138)])){
+  print(i)
+  d <-lm(usa.trt.cl[,as.character(i)] ~., 
+         data=usa.trt.cl[,-c(1:4, 10:55, 62:66, 71:81, 89:104, 111:116, 140:144, 121:138,
+                             which(x=names(usa.trt.cl)==i, arr.ind=TRUE))])
+  d.fit <- append(d.fit, summary(d)$adj.r.squared)
+  #break
+}
+d.fit <- as.numeric(d.fit)
+hist(d.fit)
+summary(d.fit)
+
+#save the r-squared of the regressions in a data frame
+df <- data.frame(var=names(usa.trt.cl[,-c(1:4, 10:55, 62:66, 71:81, 89:104, 111:116, 140:144, 121:138)]), rsq=d.fit)
+
+#Sort by rsquared
+df <- df[order(-df$rsq), ]
+
 ####################################
 ##Prepare final data frame
 ####################################
@@ -185,7 +208,9 @@ rm(ward.cuts) #cleanup
 ###READ IN SHAPEFILE
 library(maptools)
 library(rgdal)
-usa.trt.map  <- readShapePoly("US_tract_2010.shp")
+
+# DN: source probably NHGIS.org (needs login), downloaded manually from http://www.ouazad.com/urbanecondata/assignment3_monocentric/Tractdata/ and saved in Tract-Data
+usa.trt.map  <- readOGR(here::here("Tract-Data/US_tract_2010.shp"))
 
 ##FIX GEOIDS FOR MERGING
 usa.trt.cl[nchar(as.character(usa.trt.cl$"FIPS")) < 11,"GEOID2"] <- 
@@ -259,10 +284,14 @@ for (grp in categories){
     dataM <- melt(
       data.frame(scale(usa.trt.cl[complete.cases(usa.trt.cl),as.character(grp)]), 
                  cat=usa.trt.cl[complete.cases(usa.trt.cl), as.character(cl)]), id="cat")
-    plot1 <- ggplot(dataM, aes(group=variable, x=variable, y=value, fill=variable)) + 
-      stat_summary(fun.y = "mean", geom="bar") + facet_grid(.~ cat, scales="free")  + opts(
-        axis.text.x = theme_text(size=6, angle=45, hjust=1, vjust=1),
-        title="Open Geodemographic \nCommunity Types") + 
+    plot1 <- ggplot(dataM, aes(group=variable, x=variable, y=value, fill=variable)) +
+      stat_summary(fun.y = "mean", geom="bar") + facet_grid(.~ cat, scales="free")  +
+      # https://groups.google.com/forum/#!topic/ggplot2/CaWDdYyBjXw
+      #opts(
+      #  axis.text.x = theme_text(size=6, angle=45, hjust=1, vjust=1),
+      #  title="Open Geodemographic \nCommunity Types") +
+      theme(axis.text.x = element_text(size=6, angle=45, hjust=1, vjust=1)) +
+      labs(title="Open Geodemographic \nCommunity Types") +
       ylab("Variable Mean (Standard Score)") + 
       xlab("Variables by Community Type") 
     print(plot1)
@@ -274,7 +303,7 @@ for (grp in categories){
 #####################################
 ##LOAD DATA
 #load("tract_data_with_classes_063013.Rdata")
-variables <- read.csv("usa_trt_varnames.csv")
+variables <- read.csv(here::here("Input-Data/usa_trt_varnames_plots_0913.csv"))
 
 ##CALCULATE INDEX SCORES
 usa.trt.cl$X10 <- factor(x=usa.trt.cl$X10, levels=1:10, labels=LETTERS[seq( from = 1, to = 10 )])
@@ -283,7 +312,7 @@ usa.trt.indexScores <-
 usa.trt.indexScores <- cbind(usa.trt.cl[,c(2:4, 141:144)], usa.trt.indexScores)
 
 #tab_summary <- aggregate(.~ X10, data=usa.trt.indexScores[,c(4,8:143)], FUN=summary)
-tab_mean  <- aggregate(.~ X10, data=usa.trt.indexScores[,c(4,8:143)], FUN=mean)
+tab_mean  <- aggregate(.~ usa.trt.cl$X10, data=usa.trt.indexScores[,c(4,8:143)], FUN=mean)
 
 ##HEATMAPS BY DOMAIN
 for (d in levels(variables$Domain)[2:11]){
@@ -314,7 +343,7 @@ rm(Demography, Education, "Family Structure", Housing, "Industry of Occupation",
    Demography.m, Education.m, "Family Structure.m", Housing.m, "Industry of Occupation.m", Language.m, Mobility.m, Race.m, Stability.m, Wealth.m, vars)
 
 #print a html table of means by class
-#print(xtable(tab_mean), type="html", file="~/table.html")
+#print(xtable(tab_mean), type="html", file=here::here("table.html"))
 
 ##############################
 ##POPULATION PYRAMIDS
@@ -419,6 +448,3 @@ for (d in levels(variables$Domain)[2:11]){
     theme(legend.position = "none")
   ggsave(p, filename=paste("DomainSummary55class", K, gsub(pattern=" ", replacement="_", x=d), ".pdf" ,sep=""), height=5, width=(dim(get(d))[2]/2))
 }
-
-
-

@@ -6,6 +6,7 @@ This repository contains all the data and code to create an geodemographic class
 
 ## Data
 All of the used to construct the typology including all input and output data is online at [openICPSR](http://doi.org/10.3886/E41329V1).  In the [openICPSR data repository](http://doi.org/10.3886/E41329V1) for this project.  The data repository contains:
+
 * **Input Data** folder contains all of the input Data from the American Community Survey.  A detailed list of the 136 input variables is below.
 * The **Validation Data** are extracts from two freely available data sets, [crime in Chicago](http://gis.chicagopolice.org/CLEARMap_crime_sums/startPage.htm#) and [campaign contributions by individuals](http://www.fec.gov/finance/disclosure/ftpdet.shtml). The specific files that we used in the paper URL are on the [openICPSR repository](http://doi.org/10.3886/E41329V1).
 * The **Output Data** folder contains a shapefile for the entire US containing the 10, 55, and 250 class level of the classification (variables names "X10, "X55", and "cluster")
